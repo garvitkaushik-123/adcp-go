@@ -1549,3 +1549,58 @@ type VendorPricingOption struct {
 	AppliesToOutputFormatIDs []FormatRef    `json:"applies_to_output_format_ids,omitempty"`
 	Ext                      any            `json:"ext,omitempty"`
 }
+
+// --- Reliable Reporting consumer status ---
+
+// ReportingConsumerStatusPeriod is the expected half-open reporting period.
+type ReportingConsumerStatusPeriod struct {
+	Start          string `json:"start"`
+	End            string `json:"end"`
+	SourceTimezone string `json:"source_timezone"`
+}
+
+// ReportingConsumerStatus is one immutable consumer statement about whether
+// required reporting for an expected configuration period was consumed.
+type ReportingConsumerStatus struct {
+	ReportingStatusID            string                         `json:"reporting_status_id"`
+	SupersedesReportingStatusID  string                         `json:"supersedes_reporting_status_id,omitempty"`
+	DeliveryConfigID             string                         `json:"delivery_config_id"`
+	DeliveryConfigVersion        int                            `json:"delivery_config_version"`
+	ReportDefinitionID           string                         `json:"report_definition_id"`
+	Period                       ReportingConsumerStatusPeriod   `json:"period"`
+	ReportingObligationID        string                         `json:"reporting_obligation_id,omitempty"`
+	ReportingRevisionID          string                         `json:"reporting_revision_id,omitempty"`
+	ObservedRevisionContentSHA256 string                        `json:"observed_revision_content_sha256,omitempty"`
+	ConsumerStatus               string                         `json:"consumer_status"`
+	StatusAsOf                   string                         `json:"status_as_of"`
+	MismatchCode                 string                         `json:"mismatch_code,omitempty"`
+	FailureCode                  string                         `json:"failure_code,omitempty"`
+	ConsumerCommitRef            string                         `json:"consumer_commit_ref,omitempty"`
+	SellerLedgerSnapshotID       string                         `json:"seller_ledger_snapshot_id,omitempty"`
+	SellerLedgerAsOf             string                         `json:"seller_ledger_as_of,omitempty"`
+	RecordedAt                   string                         `json:"recorded_at,omitempty"`
+}
+
+// ReportingStatusResult is one entry in the sync_reporting_status response.
+// Exactly one of Recorded/Unchanged/Failed variants applies.
+type ReportingStatusResult struct {
+	Result            string                   `json:"result"`
+	ConsumerStatus    *ReportingConsumerStatus  `json:"consumer_status,omitempty"`
+	ReportingStatusID string                   `json:"reporting_status_id,omitempty"`
+	Errors            []AdcpError              `json:"errors,omitempty"`
+}
+
+// ReportingStatusRecordedResult builds a "recorded" result.
+func ReportingStatusRecordedResult(status ReportingConsumerStatus) ReportingStatusResult {
+	return ReportingStatusResult{Result: "recorded", ConsumerStatus: &status}
+}
+
+// ReportingStatusUnchangedResult builds an "unchanged" result (idempotent replay).
+func ReportingStatusUnchangedResult(status ReportingConsumerStatus) ReportingStatusResult {
+	return ReportingStatusResult{Result: "unchanged", ConsumerStatus: &status}
+}
+
+// ReportingStatusFailedResult builds a "failed" result.
+func ReportingStatusFailedResult(statusID string, errors ...AdcpError) ReportingStatusResult {
+	return ReportingStatusResult{Result: "failed", ReportingStatusID: statusID, Errors: errors}
+}

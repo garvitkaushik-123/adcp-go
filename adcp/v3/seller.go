@@ -176,6 +176,21 @@ func Register(server *mcp.Server, cfg Config) {
 			})
 	}
 
+	// --- Reporting tools ---
+
+	if cfg.SyncReportingStatus != nil {
+		AddTool(server, "sync_reporting_status", "Submit consumer reporting status",
+			func(ctx context.Context, req *mcp.CallToolRequest, input SyncReportingStatusRequest) (*mcp.CallToolResult, any, error) {
+				results, err := cfg.SyncReportingStatus(ctx, &input)
+				if err != nil {
+					result, out, e := errorToResult(err)
+					return attachContext(result, input.Context), out, e
+				}
+				result, out, err := SyncReportingStatusResponseData(results)
+				return attachContext(result, input.Context), out, err
+			})
+	}
+
 	// --- Creative tools ---
 
 	if cfg.ListCreativeFormats != nil {
@@ -358,6 +373,9 @@ type Config struct {
 	// --- Signals ---
 	GetSignals     func(ctx context.Context, req *GetSignalsRequest) ([]Signal, error)
 	ActivateSignal func(ctx context.Context, req *ActivateSignalRequest) ([]Deployment, error)
+
+	// --- Reporting ---
+	SyncReportingStatus func(ctx context.Context, req *SyncReportingStatusRequest) ([]ReportingStatusResult, error)
 
 	// --- Collection ---
 	CreateCollectionList func(ctx context.Context, req *CreateCollectionListRequest) (*CreateCollectionListResult, error)

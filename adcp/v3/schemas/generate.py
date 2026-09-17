@@ -56,6 +56,8 @@ KNOWN_TYPES = {
     # all variant fields.
     'PricingOption', 'Deployment', 'PublisherPropertySelector',
     'CanonicalMediaBuyAction',
+    'ReportingConsumerStatus', 'ReportingConsumerStatusPeriod',
+    'ReportingStatusResult',
     'OptimizationGoal',
     'OptimizationGoalCostPerTarget', 'OptimizationGoalThresholdRateTarget',
     'OptimizationGoalPerAdSpendTarget', 'OptimizationGoalMaximizeValueTarget',

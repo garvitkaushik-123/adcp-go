@@ -176,3 +176,39 @@ func TestMediaBuysDataResponseIncludesPackageStatusFields(t *testing.T) {
 	assert.NotContains(t, pkg, "pricing_option_id")
 	assert.NotContains(t, pkg, "creative_assignments")
 }
+
+func TestSyncReportingStatusResponseData(t *testing.T) {
+	recorded := ReportingStatusRecordedResult(ReportingConsumerStatus{
+		ReportingStatusID:     "status-001",
+		DeliveryConfigID:      "dc-1",
+		DeliveryConfigVersion: 2,
+		ReportDefinitionID:    "def-1",
+		Period: ReportingConsumerStatusPeriod{
+			Start:          "2026-01-01T00:00:00Z",
+			End:            "2026-01-02T00:00:00Z",
+			SourceTimezone: "UTC",
+		},
+		ConsumerStatus: "received",
+		StatusAsOf:     "2026-01-01T12:00:00Z",
+		RecordedAt:     "2026-01-01T12:00:01Z",
+	})
+	failed := ReportingStatusFailedResult("status-002", AdcpError{"code": "INVALID_REQUEST", "message": "bad field"})
+
+	result, out, err := SyncReportingStatusResponseData([]ReportingStatusResult{recorded, failed})
+	require.NoError(t, err)
+	assert.False(t, result.IsError)
+
+	m, ok := out.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "completed", m["status"])
+
+	results, ok := m["results"].([]ReportingStatusResult)
+	require.True(t, ok)
+	require.Len(t, results, 2)
+	assert.Equal(t, "recorded", results[0].Result)
+	assert.Equal(t, "status-001", results[0].ConsumerStatus.ReportingStatusID)
+	assert.Equal(t, "failed", results[1].Result)
+	assert.Equal(t, "status-002", results[1].ReportingStatusID)
+	require.Len(t, results[1].Errors, 1)
+	assert.Equal(t, "INVALID_REQUEST", results[1].Errors[0]["code"])
+}
