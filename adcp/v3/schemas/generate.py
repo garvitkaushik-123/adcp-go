@@ -58,6 +58,7 @@ KNOWN_TYPES = {
     'CanonicalMediaBuyAction',
     'ReportingConsumerStatus', 'ReportingConsumerStatusPeriod',
     'ReportingStatusResult',
+    'ReportingAdjustmentReceipt', 'ReportingReceiptResult',
     'OptimizationGoal',
     'OptimizationGoalCostPerTarget', 'OptimizationGoalThresholdRateTarget',
     'OptimizationGoalPerAdSpendTarget', 'OptimizationGoalMaximizeValueTarget',
