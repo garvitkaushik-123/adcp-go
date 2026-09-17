@@ -305,6 +305,12 @@ func SyncReportingStatusResponseData(results []ReportingStatusResult) (*mcp.Call
 	return buildResult(fmt.Sprintf("Recorded %d reporting status results", len(results)), out), out, nil
 }
 
+// SyncReportingReceiptsResponseData builds a sync_reporting_receipts response.
+func SyncReportingReceiptsResponseData(results []ReportingReceiptResult) (*mcp.CallToolResult, any, error) {
+	out := map[string]any{"status": "completed", "results": results}
+	return buildResult(fmt.Sprintf("Recorded %d reporting receipt results", len(results)), out), out, nil
+}
+
 // --- Generic ---
 
 // Result builds a generic tool response with StructuredContent.

@@ -1604,3 +1604,53 @@ func ReportingStatusUnchangedResult(status ReportingConsumerStatus) ReportingSta
 func ReportingStatusFailedResult(statusID string, errors ...AdcpError) ReportingStatusResult {
 	return ReportingStatusResult{Result: "failed", ReportingStatusID: statusID, Errors: errors}
 }
+
+// --- Reliable Reporting receipts (buyer reconciler) ---
+
+// ReportingAdjustmentReceipt is a consumer acceptance/rejection of a
+// post-official adjustment.
+type ReportingAdjustmentReceipt struct {
+	ReportingReceiptID           string   `json:"reporting_receipt_id"`
+	ReportingAdjustmentID        string   `json:"reporting_adjustment_id"`
+	AdjustsReportingRevisionID   string   `json:"adjusts_reporting_revision_id"`
+	SupersedesReportingReceiptID string   `json:"supersedes_reporting_receipt_id,omitempty"`
+	Status                       string   `json:"status"`
+	ObservedAdjustmentSHA256     string   `json:"observed_adjustment_sha256"`
+	RejectionCodes               []string `json:"rejection_codes,omitempty"`
+	ObservedAt                   string   `json:"observed_at"`
+	ReceivedAt                   string   `json:"received_at,omitempty"`
+}
+
+// ReportingReceiptResult is one entry in sync_reporting_receipts response.
+type ReportingReceiptResult struct {
+	Result             string                      `json:"result"`
+	Receipt            *ReportingReceipt           `json:"receipt,omitempty"`
+	AdjustmentReceipt  *ReportingAdjustmentReceipt `json:"adjustment_receipt,omitempty"`
+	ReportingReceiptID string                      `json:"reporting_receipt_id,omitempty"`
+	Errors             []AdcpError                 `json:"errors,omitempty"`
+}
+
+// ReportingReceiptRecordedResult builds a "recorded" receipt result.
+func ReportingReceiptRecordedResult(receipt ReportingReceipt) ReportingReceiptResult {
+	return ReportingReceiptResult{Result: "recorded", Receipt: &receipt}
+}
+
+// ReportingReceiptUnchangedResult builds an "unchanged" receipt result.
+func ReportingReceiptUnchangedResult(receipt ReportingReceipt) ReportingReceiptResult {
+	return ReportingReceiptResult{Result: "unchanged", Receipt: &receipt}
+}
+
+// ReportingAdjustmentReceiptRecordedResult builds a "recorded" adjustment receipt result.
+func ReportingAdjustmentReceiptRecordedResult(receipt ReportingAdjustmentReceipt) ReportingReceiptResult {
+	return ReportingReceiptResult{Result: "recorded", AdjustmentReceipt: &receipt}
+}
+
+// ReportingAdjustmentReceiptUnchangedResult builds an "unchanged" adjustment receipt result.
+func ReportingAdjustmentReceiptUnchangedResult(receipt ReportingAdjustmentReceipt) ReportingReceiptResult {
+	return ReportingReceiptResult{Result: "unchanged", AdjustmentReceipt: &receipt}
+}
+
+// ReportingReceiptFailedResult builds a "failed" receipt result.
+func ReportingReceiptFailedResult(receiptID string, errors ...AdcpError) ReportingReceiptResult {
+	return ReportingReceiptResult{Result: "failed", ReportingReceiptID: receiptID, Errors: errors}
+}

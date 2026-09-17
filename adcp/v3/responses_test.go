@@ -212,3 +212,45 @@ func TestSyncReportingStatusResponseData(t *testing.T) {
 	require.Len(t, results[1].Errors, 1)
 	assert.Equal(t, "INVALID_REQUEST", results[1].Errors[0]["code"])
 }
+
+func TestSyncReportingReceiptsResponseData(t *testing.T) {
+	recorded := ReportingReceiptRecordedResult(ReportingReceipt{
+		ReportingReceiptID:         "rcpt-001",
+		ReportingObligationID:      "obl-1",
+		ReportingRevisionID:        "rev-1",
+		ReportingMaterializationID: "mat-1",
+		Status:                     "accepted",
+		VerificationProfile:        "standard",
+		ObservedRowCount:           42,
+		ObservedAt:                 "2026-01-01T12:00:00Z",
+		ReceivedAt:                 "2026-01-01T12:00:01Z",
+	})
+	adjRecorded := ReportingAdjustmentReceiptRecordedResult(ReportingAdjustmentReceipt{
+		ReportingReceiptID:         "rcpt-002",
+		ReportingAdjustmentID:      "adj-1",
+		AdjustsReportingRevisionID: "rev-1",
+		Status:                     "accepted",
+		ObservedAdjustmentSHA256:   "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+		ObservedAt:                 "2026-01-02T12:00:00Z",
+		ReceivedAt:                 "2026-01-02T12:00:01Z",
+	})
+	failed := ReportingReceiptFailedResult("rcpt-003", AdcpError{"code": "INVALID_REQUEST"})
+
+	result, out, err := SyncReportingReceiptsResponseData([]ReportingReceiptResult{recorded, adjRecorded, failed})
+	require.NoError(t, err)
+	assert.False(t, result.IsError)
+
+	m, ok := out.(map[string]any)
+	require.True(t, ok)
+	assert.Equal(t, "completed", m["status"])
+
+	results, ok := m["results"].([]ReportingReceiptResult)
+	require.True(t, ok)
+	require.Len(t, results, 3)
+	assert.Equal(t, "recorded", results[0].Result)
+	assert.Equal(t, "rcpt-001", results[0].Receipt.ReportingReceiptID)
+	assert.Equal(t, "recorded", results[1].Result)
+	assert.Equal(t, "rcpt-002", results[1].AdjustmentReceipt.ReportingReceiptID)
+	assert.Equal(t, "failed", results[2].Result)
+	assert.Equal(t, "rcpt-003", results[2].ReportingReceiptID)
+}
