@@ -548,6 +548,7 @@ type GovernanceAgent struct {
 }
 
 type ProductsData struct {
+	Status               string                             `json:"status,omitempty"`
 	Products             []Product                          `json:"products"`
 	RefinementApplied    []GetProductsRefinementAppliedItem `json:"refinement_applied,omitempty"`
 	WholesaleFeedVersion string                             `json:"wholesale_feed_version,omitempty"`

@@ -23,7 +23,13 @@ func CapabilitiesResponse(data *CapabilitiesData) (*mcp.CallToolResult, any, err
 
 // ProductsResponse builds a get_products response.
 func ProductsResponse(data *ProductsData) (*mcp.CallToolResult, any, error) {
-	return buildResult(fmt.Sprintf("Found %d products", len(data.Products)), data), data, nil
+	out := data
+	if data != nil && data.Status == "" {
+		copy := *data
+		copy.Status = "completed"
+		out = &copy
+	}
+	return buildResult(fmt.Sprintf("Found %d products", len(out.Products)), out), out, nil
 }
 
 // CreateMediaBuyResult is an alias for the generated create_media_buy response union.
