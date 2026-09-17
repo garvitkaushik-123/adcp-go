@@ -215,6 +215,51 @@ func TestSessionScope(t *testing.T) {
 	assert.True(t, rReplay.Replayed)
 }
 
+func TestContextIDScope(t *testing.T) {
+	now := time.Now().UTC()
+	b := newMemoryBackend(0, func() time.Time { return now })
+	s := New(Options{
+		Backend: b,
+		TTL:     time.Hour,
+		Scope:   ContextIDScope,
+		Clock:   func() time.Time { return now },
+	})
+
+	var calls int32
+	wrapped := s.Wrap(func(context.Context, []byte) ([]byte, error) {
+		atomic.AddInt32(&calls, 1)
+		return []byte(`{}`), nil
+	})
+	ctx := WithPrincipal(context.Background(), "p1")
+	key := Generate()
+
+	req1 := mustJSON(t, map[string]any{"idempotency_key": key, "context_id": "ctx-A", "message": "hi"})
+	req2 := mustJSON(t, map[string]any{"idempotency_key": key, "context_id": "ctx-B", "message": "hi"})
+	reqNone := mustJSON(t, map[string]any{"idempotency_key": key, "message": "hi"})
+
+	_, err := wrapped(ctx, req1)
+	require.NoError(t, err)
+
+	r2, err := wrapped(ctx, req2)
+	require.NoError(t, err)
+	assert.False(t, r2.Replayed, "different context_id should not replay")
+	assert.Equal(t, int32(2), atomic.LoadInt32(&calls))
+
+	rReplay, err := wrapped(ctx, req1)
+	require.NoError(t, err)
+	assert.True(t, rReplay.Replayed, "same context_id should replay")
+
+	rNone, err := wrapped(ctx, reqNone)
+	require.NoError(t, err)
+	assert.False(t, rNone.Replayed, "absent context_id falls back to principal-only scope")
+}
+
+func TestContextIDScopeNoPrincipal(t *testing.T) {
+	_, err := ContextIDScope(context.Background(), []byte(`{}`))
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "principal missing")
+}
+
 func TestCapabilityFragment(t *testing.T) {
 	now := time.Now().UTC()
 	s, _ := newTestStore(t, &now)
