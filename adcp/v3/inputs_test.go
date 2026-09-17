@@ -392,3 +392,49 @@ func TestCreativeAssignmentTypedFieldsOverrideExtraCollisions(t *testing.T) {
 	assert.NotContains(t, wire, "placement_ids")
 	assert.Equal(t, "x", wire["vendor_hint"])
 }
+
+func TestNullableThreeStates(t *testing.T) {
+	type demo struct {
+		Name  string            `json:"name"`
+		Score *Nullable[int]    `json:"score,omitempty"`
+		Tag   *Nullable[string] `json:"tag,omitempty"`
+	}
+
+	t.Run("absent", func(t *testing.T) {
+		out, err := json.Marshal(demo{Name: "a"})
+		require.NoError(t, err)
+		assert.JSONEq(t, `{"name":"a"}`, string(out))
+	})
+
+	t.Run("explicit null", func(t *testing.T) {
+		out, err := json.Marshal(demo{Name: "a", Score: NullableNull[int]()})
+		require.NoError(t, err)
+		assert.JSONEq(t, `{"name":"a","score":null}`, string(out))
+	})
+
+	t.Run("value", func(t *testing.T) {
+		out, err := json.Marshal(demo{Name: "a", Score: NullableValue(42)})
+		require.NoError(t, err)
+		assert.JSONEq(t, `{"name":"a","score":42}`, string(out))
+	})
+
+	t.Run("value zero", func(t *testing.T) {
+		out, err := json.Marshal(demo{Name: "a", Score: NullableValue(0)})
+		require.NoError(t, err)
+		assert.JSONEq(t, `{"name":"a","score":0}`, string(out))
+	})
+
+	t.Run("unmarshal value", func(t *testing.T) {
+		var d demo
+		require.NoError(t, json.Unmarshal([]byte(`{"name":"a","tag":"x"}`), &d))
+		assert.NotNil(t, d.Tag)
+		assert.Equal(t, "x", d.Tag.Value)
+	})
+
+	t.Run("unmarshal absent", func(t *testing.T) {
+		var d demo
+		require.NoError(t, json.Unmarshal([]byte(`{"name":"b"}`), &d))
+		assert.Nil(t, d.Score)
+		assert.Nil(t, d.Tag)
+	})
+}
