@@ -96,6 +96,20 @@ type MediaBuyCapabilities struct {
 	FrequencyCapping             *FrequencyCappingCaps                 `json:"frequency_capping,omitempty"`
 	ContentStandards             *ContentStandardsCaps                 `json:"content_standards,omitempty"`
 	Portfolio                    *PortfolioCaps                        `json:"portfolio,omitempty"`
+	AggregateFrequencyCapping    *MediaBuyFrequencyCapCapability       `json:"aggregate_frequency_capping,omitempty"`
+	AcceptancePolicyDiscovery    map[string]any                        `json:"acceptance_policy_discovery,omitempty"`
+	AudienceEvidence             map[string]any                        `json:"audience_evidence,omitempty"`
+	AvailabilityHorizon          *bool                                 `json:"availability_horizon,omitempty"`
+	BudgetCapping                map[string]any                        `json:"budget_capping,omitempty"`
+	LifecycleTools               []string                              `json:"lifecycle_tools,omitempty"`
+	MeasurementTermsAcceptance   *bool                                 `json:"measurement_terms_acceptance,omitempty"`
+	OutcomeTarget                *bool                                 `json:"outcome_target,omitempty"`
+	PerformanceFeedback          map[string]any                        `json:"performance_feedback,omitempty"`
+	ProposalRefinement           map[string]any                        `json:"proposal_refinement,omitempty"`
+	RelationshipNotifications    map[string]any                        `json:"relationship_notifications,omitempty"`
+	ReportingDelivery            map[string]any                        `json:"reporting_delivery,omitempty"`
+	RightsAttestations           map[string]any                        `json:"rights_attestations,omitempty"`
+	SupportedIndicatorTypes      []string                              `json:"supported_indicator_types,omitempty"`
 }
 
 type MediaBuyVendorMetricOptimizationCaps struct {
@@ -130,15 +144,23 @@ type CreativeSpecsCaps struct {
 // of a boolean/object indicates support; buyers can then send matching fields
 // in targeting_overlay.
 type TargetingCaps struct {
-	GeoCountries     *bool               `json:"geo_countries,omitempty"`
-	GeoRegions       *bool               `json:"geo_regions,omitempty"`
-	GeoMetros        *GeoMetrosCaps      `json:"geo_metros,omitempty"`
-	GeoPostalAreas   *GeoPostalAreasCaps `json:"geo_postal_areas,omitempty"`
-	GeoProximity     *GeoProximityCaps   `json:"geo_proximity,omitempty"`
-	AgeRestriction   *AgeRestrictionCaps `json:"age_restriction,omitempty"`
-	Language         *bool               `json:"language,omitempty"`
-	KeywordTargets   *KeywordMatchCaps   `json:"keyword_targets,omitempty"`
-	NegativeKeywords *KeywordMatchCaps   `json:"negative_keywords,omitempty"`
+	GeoCountries        *bool               `json:"geo_countries,omitempty"`
+	GeoRegions          *bool               `json:"geo_regions,omitempty"`
+	GeoRegionsExclude   *bool               `json:"geo_regions_exclude,omitempty"`
+	GeoPlaces           map[string]any      `json:"geo_places,omitempty"`
+	GeoMetros           *GeoMetrosCaps      `json:"geo_metros,omitempty"`
+	GeoPostalAreas      *GeoPostalAreasCaps `json:"geo_postal_areas,omitempty"`
+	GeoProximity        *GeoProximityCaps   `json:"geo_proximity,omitempty"`
+	Demographics        map[string]any      `json:"demographics,omitempty"`
+	AgeRestriction      *AgeRestrictionCaps `json:"age_restriction,omitempty"`
+	Language            *bool               `json:"language,omitempty"`
+	KeywordTargets      *KeywordMatchCaps   `json:"keyword_targets,omitempty"`
+	NegativeKeywords    *KeywordMatchCaps   `json:"negative_keywords,omitempty"`
+	PlacementSelection  map[string]any      `json:"placement_selection,omitempty"`
+	PropertyList        *bool               `json:"property_list,omitempty"`
+	PropertyListExclude *bool               `json:"property_list_exclude,omitempty"`
+	CollectionList        *bool             `json:"collection_list,omitempty"`
+	CollectionListExclude *bool             `json:"collection_list_exclude,omitempty"`
 }
 
 type GeoMetrosCaps struct {
