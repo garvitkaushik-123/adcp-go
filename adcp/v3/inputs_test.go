@@ -393,6 +393,22 @@ func TestCreativeAssignmentTypedFieldsOverrideExtraCollisions(t *testing.T) {
 	assert.Equal(t, "x", wire["vendor_hint"])
 }
 
+func TestClearFieldTargetingNullClear(t *testing.T) {
+	input := TargetingInput{
+		GeoCountries: []string{"US", "CA"},
+		GeoRegions:   ClearField(),
+	}
+	out, err := json.Marshal(input)
+	require.NoError(t, err)
+
+	var wire map[string]any
+	require.NoError(t, json.Unmarshal(out, &wire))
+	assert.Equal(t, []any{"US", "CA"}, wire["geo_countries"])
+	assert.Contains(t, wire, "geo_regions")
+	assert.Nil(t, wire["geo_regions"])
+	assert.NotContains(t, wire, "geo_metros")
+}
+
 func TestNullableThreeStates(t *testing.T) {
 	type demo struct {
 		Name  string            `json:"name"`

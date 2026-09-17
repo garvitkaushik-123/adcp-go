@@ -47,6 +47,15 @@ func (n *Nullable[T]) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &n.Value)
 }
 
+// ClearField returns a value that marshals as JSON null when stored in an
+// `any` field with omitempty. Use it on TargetingInput dimensions to clear
+// an inherited targeting dimension:
+//
+//	input.GeoCountries = adcp.ClearField()  // sends "geo_countries": null
+func ClearField() any {
+	return (*struct{})(nil)
+}
+
 // Bool returns a pointer to v for optional boolean request fields.
 func Bool(v bool) *bool {
 	return &v
