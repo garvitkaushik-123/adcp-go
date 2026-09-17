@@ -55,6 +55,7 @@ KNOWN_TYPES = {
     # oneOf schemas — hand-writing flattens the union into a single struct with
     # all variant fields.
     'PricingOption', 'Deployment', 'PublisherPropertySelector',
+    'CanonicalMediaBuyAction',
     'OptimizationGoal',
     'OptimizationGoalCostPerTarget', 'OptimizationGoalThresholdRateTarget',
     'OptimizationGoalPerAdSpendTarget', 'OptimizationGoalMaximizeValueTarget',
@@ -146,6 +147,30 @@ TOOL_SCHEMAS = [
     "media-buy/provide-performance-feedback-response.json",
     "media-buy/build-creative-request.json",
     "media-buy/build-creative-response.json",
+    # Media buy — 3.2.0-rc.3 proposal-negotiation tools (accept_proposal,
+    # buy_products, control_media_buy, decline_proposals, refine_proposals,
+    # request_proposals are new; list_products is new but its response uses
+    # an untitled top-level oneOf refinement the generator's union path can't
+    # flatten (see TOOL_SCHEMAS handling in generate()), so only its request
+    # is wired up here — the response needs hand-written flattening like
+    # SyncCreativesResponse and friends, deferred to a follow-up task).
+    "media-buy/accept-proposal-request.json",
+    "media-buy/accept-proposal-response.json",
+    "media-buy/buy-products-request.json",
+    "media-buy/buy-products-response.json",
+    "media-buy/control-media-buy-request.json",
+    "media-buy/control-media-buy-response.json",
+    "media-buy/decline-proposals-request.json",
+    "media-buy/decline-proposals-response.json",
+    "media-buy/refine-proposals-request.json",
+    "media-buy/refine-proposals-response.json",
+    "media-buy/request-proposals-request.json",
+    "media-buy/request-proposals-response.json",
+    "media-buy/list-products-request.json",
+    "core/canonical-media-buy-action.json",
+    "media-buy/package-control.json",
+    "media-buy/product-purchase-input.json",
+    "media-buy/product-discovery-criteria.json",
     # Creative
     "creative/sync-creatives-request.json",
     "creative/sync-creatives-response.json",
@@ -183,6 +208,13 @@ TOOL_SCHEMAS = [
     "collection/delete-collection-list-response.json",
     "collection/list-collection-lists-request.json",
     "collection/list-collection-lists-response.json",
+    # Reporting (rc.2 + rc.3)
+    "media-buy/sync-reporting-status-request.json",
+    "media-buy/sync-reporting-status-response.json",
+    "media-buy/get-reporting-status-request.json",
+    "media-buy/get-reporting-status-response.json",
+    "media-buy/sync-reporting-receipts-request.json",
+    "media-buy/sync-reporting-receipts-response.json",
 ]
 
 # Webhook payload schemas. PR adcontextprotocol/adcp#2417 made `idempotency_key`
@@ -285,6 +317,100 @@ CORE_SCHEMAS = [
     "core/material-deadline.json",
     "core/duration.json",
     "creative/audit-observation.json",
+    # 3.2.0-rc.3 additions. These were previously unreachable (or reachable
+    # but silently `any`) because the bundle switched every $ref to absolute
+    # https://.../schemas/{version}/... URLs; see resolve_ref_schema. Adding
+    # them here lets the existing generic struct/allOf/oneOf flattening in
+    # schema_to_struct pick them up with no other generator changes.
+    "core/attestation-evaluation.json",
+    "core/attestation-reference.json",
+    "core/audience-evidence-selection.json",
+    "core/audience-evidence.json",
+    "core/bidding-policy.json",
+    "core/canonical-proposal.json",
+    "core/collection-delivery-metrics.json",
+    "core/collection-property-delivery-metrics.json",
+    "core/creative-representation-set.json",
+    "core/demographic-reporting-capability.json",
+    "core/demographic-targeting-capability.json",
+    "core/demographic-targeting-intent.json",
+    "core/geo-place-area.json",
+    "core/installment-delivery-metrics.json",
+    "core/installment-property-delivery-metrics.json",
+    "core/media-buy-available-action.json",
+    "core/package-delivery-metric-value.json",
+    "core/package-format-snapshot.json",
+    "core/package-targeting-resolution.json",
+    "core/placement-property-delivery-metrics.json",
+    "core/postal-area-support.json",
+    "core/product-allowed-action.json",
+    "core/product-card-reference-asset.json",
+    "core/product-format-declaration.json",
+    "core/product-targeting-resolution.json",
+    "core/property-delivery-metrics.json",
+    "core/reporting-delivery-config-state.json",
+    "core/reporting-revision.json",
+    "core/representation-destination.json",
+    "core/targeting-input.json",
+    "core/targeting-overlay-requirements.json",
+    "core/targeting-overlay-support.json",
+    "core/vendor-metric-value.json",
+    "core/warning.json",
+    "governance/reported-outcome-error.json",
+    "media-buy/acceptance-context.json",
+    "media-buy/acceptance-policy-profile.json",
+    # Pure discriminated unions with no shared base — schema_properties
+    # flattens oneOf/anyOf branches the same way it flattens allOf, so these
+    # are safe here too (no title requirement; that only applies to the
+    # TOOL_SCHEMAS top-level union path).
+    "core/account-identity-change.json",
+    "core/inventory-list-application.json",
+    "core/performance-feedback-metric.json",
+    "core/placement-identity.json",
+    "core/placement-selection.json",
+    "core/evaluator-spec.json",
+    "core/reporting-control-total.json",
+    "media-buy/change-term-constraints.json",
+    "core/targeting-modification.json",
+    # Second-order 3.2.0-rc.3 additions: referenced by the schemas just above.
+    "core/audience-characteristic.json",
+    "core/canonical-delivery-forecast.json",
+    "core/canonical-product.json",
+    "core/catalog-item-availability-state.json",
+    "core/catalog-item-availability-update-result.json",
+    "core/creative-representation.json",
+    "core/demographic-targeting-resolution.json",
+    "core/geo-place-requirement.json",
+    "core/reporting-coverage.json",
+    "core/reporting-delivery-config.json",
+    "core/reporting-status-issue.json",
+    "core/signal-definition-enrichment.json",
+    "core/tracker-execution-contract.json",
+    "media-buy/commercial-terms.json",
+    # Third-order 3.2.0-rc.3 additions (the "canonical" proposal/product/pricing
+    # family used for proposal_terms_digest computation, plus a few more
+    # reporting/catalog leaves).
+    "core/canonical-audience-evidence-selection.json",
+    "core/canonical-audience-evidence.json",
+    "core/canonical-budget-allocation.json",
+    "core/canonical-forecast-point.json",
+    "core/canonical-format-option.json",
+    "core/canonical-measurement-terms.json",
+    "core/canonical-placement.json",
+    "core/canonical-pricing-option.json",
+    "core/canonical-reporting-capabilities.json",
+    "core/catalog-item-availability-error.json",
+    "core/feature-requirement.json",
+    "core/reporting-delivery-method.json",
+    "core/reporting-schedule.json",
+    "core/tracker-execution-selector.json",
+    "media-buy/product-purchase.json",
+    "core/keyword-target.json",
+    "core/canonical-forecast-vendor-metric-value.json",
+    "core/canonical-optimization-goal.json",
+    "core/product-audience-evidence-requirements.json",
+    "core/reporting-write-destination.json",
+    "core/account-with-authorization.json",
 ]
 
 # Schemas that are not standalone tool requests/responses, but are important
@@ -542,10 +668,10 @@ INLINE_SCHEMA_TYPES = OrderedDict([
         "AgeRestriction",
         "core/targeting.json#/properties/age_restriction",
     ),
-    (
-        "KeywordTarget",
-        "core/targeting.json#/properties/keyword_targets/items",
-    ),
+    # KeywordTarget moved to CORE_SCHEMAS below: 3.2.0-rc.3 promoted this
+    # inline shape to a standalone core/keyword-target.json with the same
+    # properties, and auto-discovery collides on the name if both are
+    # registered.
     (
         "NegativeKeywordTarget",
         "core/targeting.json#/properties/negative_keywords/items",
@@ -1063,6 +1189,18 @@ INLINE_SCHEMA_TYPES = OrderedDict([
         "UserMatchUID",
         "core/user-match.json#/properties/uids/items",
     ),
+    # 3.2.0-rc.3: new siblings of the existing dooh_metrics/quartile_data
+    # delivery-metrics breakdown fields, repeated identically across every
+    # delivery-metrics-shaped type (core/delivery-metrics.json and its
+    # allOf-derived siblings in the *-delivery-metrics.json family).
+    (
+        "TimeBasedView",
+        "core/delivery-metrics.json#/properties/time_based_views/items",
+    ),
+    (
+        "DeliveryOohMetrics",
+        "core/delivery-metrics.json#/properties/ooh_metrics",
+    ),
 ])
 
 INLINE_SCHEMA_DESCRIPTIONS = {
@@ -1136,7 +1274,6 @@ CLOSED_INLINE_SCHEMA_TYPES = frozenset({
     'GeoProximityRadius',
     'GeoProximityGeometry',
     'AgeRestriction',
-    'KeywordTarget',
     'NegativeKeywordTarget',
     'BusinessAddress',
     'BusinessContact',
@@ -1288,6 +1425,8 @@ OPEN_INLINE_SCHEMA_TYPES = frozenset({
     'CreativeBriefDisclosure',
     'EventContentItem',
     'UserMatchUID',
+    'TimeBasedView',
+    'DeliveryOohMetrics',
 })
 
 # Shared inline helper types are generated from one schema pointer but reused by
@@ -1447,6 +1586,25 @@ REF_ALIASES = {
     'SignalPricingOption': 'SignalPricing',
     'DeliveryMetrics': 'DeliveryTotals',
     'StartTiming': 'string',  # start_time is a string or "asap"
+    # 3.2.0-rc.3: extensible identifier namespaces — a closed enum of
+    # registered tokens `anyOf` an open HTTPS-URI escape hatch. Both branches
+    # are strings, so the wire type is just `string`.
+    'GeoPlaceSystem': 'string',
+    'GeoPlaceType': 'string',
+    'MediaBuyAvailableActionID': 'string',
+    # 3.2.0-rc.3: local #/definitions/* refs the generator does not resolve
+    # (it only follows cross-file $refs). Each target is a plain string or a
+    # simple closed string enum, so `string` loses only enum validation, not
+    # the value itself.
+    'ReportingMediaBuyId': 'string',
+    'ReportingPackageId': 'string',
+    'ReportingDeliveryConfigLifecycleState': 'string',
+    'ReportingScheduleAlignment': 'string',
+    'ReportingStatusSeverity': 'string',
+    'ReportingOrchestration': 'string',
+    # 3.2.0-rc.3: deprecated integer field carried forward from the pre-3.x
+    # version envelope; kept typed rather than any since it's a plain int.
+    'AdcpMajorVersion': 'int',
     'AccountInput': 'AccountInput',
     'GovernanceAccountInput': 'GovernanceAccountInput',
     'CreativeInput': 'CreativeInput',
@@ -1555,6 +1713,7 @@ INLINE_TYPE_HINTS = {
     ('PackageDelivery', 'missing_metrics'): 'MissingMetric',
     ('CreateMediaBuyRequest', 'total_budget'): '*MediaBuyBudget',
     ('CreateMediaBuyRequest', 'io_acceptance'): '*IOAcceptance',
+    ('AcceptProposalRequest', 'io_acceptance'): '*IOAcceptance',
     ('CreateMediaBuyRequest', 'artifact_webhook'): '*ArtifactWebhookConfig',
     ('ArtifactWebhookConfig', 'authentication'): 'LegacyWebhookAuthentication',
     ('ArtifactWebhookConfig', 'sampling_rate'): '*float64',
@@ -1666,6 +1825,7 @@ INLINE_TYPE_HINTS = {
     ('Product', 'product_card_detailed'): '*ProductCardDetailed',
     ('ProductFilters', 'required_vendor_metrics'): 'RequiredVendorMetric',
     ('ForecastPoint', 'dimensions'): '[]ForecastPointDimension',
+    ('CanonicalForecastPoint', 'dimensions'): '[]ForecastPointDimension',
     ('ForecastPoint', 'viewability'): '*ForecastViewability',
     ('ReportingCapabilities', 'vendor_metrics'): 'ReportingVendorMetric',
     ('CreativePolicy', 'provenance_requirements'): '*CreativeProvenanceRequirements',
@@ -1825,6 +1985,16 @@ for _delivery_metric_type in (
     'PackageAudienceDelivery',
     'PackagePlacementDelivery',
     'DeliveryWindowPackage',
+    # 3.2.0-rc.3: DeliveryTotals/MediaBuyDeliveryTotals/PackageDelivery already
+    # carry individual hints for the pre-3.2 fields below (added inline where
+    # those types are declared); the granular *-delivery-metrics.json siblings
+    # are new in rc.3 and share the exact same allOf-derived shape.
+    'CollectionDeliveryMetrics',
+    'CollectionPropertyDeliveryMetrics',
+    'InstallmentDeliveryMetrics',
+    'InstallmentPropertyDeliveryMetrics',
+    'PlacementPropertyDeliveryMetrics',
+    'PropertyDeliveryMetrics',
 ):
     INLINE_TYPE_HINTS.update({
         (_delivery_metric_type, 'by_event_type'): 'DeliveryEventTypeMetrics',
@@ -1833,6 +2003,14 @@ for _delivery_metric_type in (
         (_delivery_metric_type, 'viewability'): '*DeliveryViewability',
         (_delivery_metric_type, 'by_action_source'): 'DeliveryActionSourceMetrics',
         (_delivery_metric_type, 'reach_window'): '*ReachWindow',
+        (_delivery_metric_type, 'time_based_views'): '[]TimeBasedView',
+        (_delivery_metric_type, 'ooh_metrics'): '*DeliveryOohMetrics',
+    })
+
+for _delivery_totals_type in ('DeliveryTotals', 'MediaBuyDeliveryTotals', 'PackageDelivery'):
+    INLINE_TYPE_HINTS.update({
+        (_delivery_totals_type, 'time_based_views'): '[]TimeBasedView',
+        (_delivery_totals_type, 'ooh_metrics'): '*DeliveryOohMetrics',
     })
 
 # Initial allowlist for generated `any` fallbacks that are intentional protocol
@@ -1842,6 +2020,29 @@ INTENTIONAL_ANY_FIELD_NAMES = {
     'context',
     'ext',
     'payload',
+}
+
+# Whole generated types whose fields are allowed to stay `any` for now. Use
+# this instead of enumerating every (type, field) pair when an entire type is
+# a new, self-contained capability-negotiation surface whose ~30+ fields all
+# share the same not-yet-modeled shape (local #/definitions/{required,
+# supported} refs and per-dimension inline objects with no $ref target of
+# their own). Proper per-dimension typing is deferred to a follow-up task;
+# tracked in the 3.2.0-rc.3 adoption plan (task 1 is the schema/bundle bump).
+INTENTIONAL_ANY_TYPES = {
+    'TargetingInput': (
+        'targeting-input.json is new in 3.2.0-rc.3; its ~30 per-dimension '
+        'fields resolve through local #/definitions refs the generator does '
+        "not yet follow. Deferred to the targeting-overlay follow-up task."
+    ),
+    'TargetingOverlayRequirements': (
+        'targeting-overlay-requirements.json is new in 3.2.0-rc.3; see '
+        'TargetingInput for why its fields stay any for now.'
+    ),
+    'TargetingOverlaySupport': (
+        'targeting-overlay-support.json is new in 3.2.0-rc.3; see '
+        'TargetingInput for why its fields stay any for now.'
+    ),
 }
 
 INTENTIONAL_ANY_FIELDS = {
@@ -1887,6 +2088,139 @@ INTENTIONAL_ANY_FIELDS = {
     ('BuildCreativeRequest', 'evaluator'): 'core/evaluator-spec.json is an experimental oneOf union (exemplar/identifier/agent forms, mutually exclusive) with additionalProperties:true; flattening would lose the union constraint, so it stays an open escape hatch',
     ('BuildCreativeVariantAxis', 'values'): 'variant_axis.values items are schema-open ({}) — caller-fixed axis values are typed per dimension (string voices, etc.), so the element type is intentionally any',
     ('GeoBreakdownSupport', 'postal_area'): 'core/postal-area-support.json is an open propertyNames-constrained map keyed by arbitrary ISO country codes (and deprecated legacy aliases) with mixed value types (arrays of postal-system enums vs deprecated boolean aliases); it has no clean closed struct',
+
+    # 3.2.0-rc.3 additions below this line. These are new fields on
+    # existing or newly-registered types where full typing (a bespoke
+    # INLINE_SCHEMA_TYPES pointer, a hand-written flattened union, or
+    # local #/definitions support the generator does not have) is real
+    # design work best done alongside the SDK task that actually uses
+    # the field. Tracked in the 3.2.0-rc.3 adoption plan.
+    ('PolicyEntry', 'issuer'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PolicyCategoryDefinition', 'facets'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('Product', 'acceptance_policy_profile_ids'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('Product', 'audience_activation'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ProductFilters', 'audience_activation_methods'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('Placement', 'identifiers'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('Placement', 'dooh_placement_attributes'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CreativeAsset', 'component_assets'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CreativeManifest', 'component_assets'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('Account', 'destination_billing_entity'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DaypartTarget', 'timezone'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('RightsConstraint', 'disclosure'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AttestationEvaluation', 'action_binding'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AttestationReference', 'locator'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AttestationReference', 'embedded_credential'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AttestationReference', 'validity_hint'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AttestationReference', 'verify_agent'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AudienceEvidenceSelection', 'attestation_evaluations'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AudienceEvidence', 'baseline'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('BiddingPolicy', 'cost_per'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('BiddingPolicy', 'roas'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalProposal', 'total_budget_guidance'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DemographicReportingCapability', 'age'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DemographicTargetingCapability', 'age'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DemographicTargetingIntent', 'age'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PackageDeliveryMetricValue', 'qualifier'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PackageFormatSnapshot', 'params'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PostalAreaSupport', 'US'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PostalAreaSupport', 'GB'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PostalAreaSupport', 'CA'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ProductCardReferenceAsset', 'asset'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ReportingDeliveryConfigState', 'setup'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ReportingRevision', 'period'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('VendorMetricValue', 'qualifier'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('Warning', 'details'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ReportedOutcomeError', 'details'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AcceptanceContext', 'subjects'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AcceptancePolicyProfile', 'policy_refs'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AcceptancePolicyProfile', 'scope'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('InventoryListApplication', 'summary'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PerformanceFeedbackMetric', 'qualifier'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlacementSelection', 'placement_refs'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('EvaluatorSpec', 'exemplars'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('EvaluatorSpec', 'rank_by'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('EvaluatorSpec', 'feature_agent'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('EvaluatorSpec', 'eval_budget'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ChangeTermConstraints', 'max_delta_amount'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ChangeTermConstraints', 'min_result_amount'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ChangeTermConstraints', 'max_result_amount'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('TargetingModification', 'applied'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('TargetingModification', 'selector'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AudienceCharacteristic', 'value'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AudienceCharacteristic', 'range'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('AudienceCharacteristic', 'taxonomy'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalProduct', 'catalog_match'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalProduct', 'acceptance_policy_profile_ids'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CreativeRepresentation', 'assets'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CreativeRepresentation', 'component_assets'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CreativeRepresentation', 'source'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DemographicTargetingResolution', 'execution'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('GeoPlaceRequirement', 'systems'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ReportingCoverage', 'limitations'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ReportingDeliveryConfig', 'scope'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('SignalDefinitionEnrichment', 'taxonomy'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('SignalDefinitionEnrichment', 'onboarder'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('SignalDefinitionEnrichment', 'modeling'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('SignalDefinitionEnrichment', 'data_subject_rights'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CommercialTerms', 'total_budget'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CommercialTerms', 'reporting_commitments'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CommercialTerms', 'cancellation_terms'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalAudienceEvidence', 'baseline'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalForecastPoint', 'viewability'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalFormatOption', 'params'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalMeasurementTerms', 'billing_measurement'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalMeasurementTerms', 'makegood_policy'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalPlacement', 'identifiers'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalPlacement', 'dooh_placement_attributes'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalPricingOption', 'parameters'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalReportingCapabilities', 'vendor_metrics'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CatalogItemAvailabilityError', 'buyer_reason'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CatalogItemAvailabilityError', 'issues'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CatalogItemAvailabilityError', 'details'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('FeatureRequirement', 'allowed_values'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('TrackerExecutionSelector', 'vast_versions'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('TrackerExecutionSelector', 'daast_versions'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalForecastVendorMetricValue', 'breakdown'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalOptimizationGoal', 'target_frequency'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalOptimizationGoal', 'target'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CanonicalOptimizationGoal', 'event_sources'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ProductAudienceEvidenceRequirements', 'accepted_attestation_issuers'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ReportingWriteDestination', 'provider'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PackageUpdate', 'bidding'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PackageDelivery', 'by_format'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PackageDelivery', 'by_demographic'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PackageDelivery', 'by_spot'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryReportingDimensions', 'catalog_item'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryReportingDimensions', 'creative'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryReportingDimensions', 'keyword'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryReportingDimensions', 'format'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryReportingDimensions', 'demographic'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryReportingDimensions', 'spot'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ReportPlanOutcomeError', 'details'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlanAuditEntry', 'delivery_statement'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlanAuditEntry', 'amount'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlanAuditEntry', 'delivery'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlanAuditEntry', 'runtime_attestations'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlanAuditEntry', 'evidence'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlanAuditFinding', 'details'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('PlanAuditGovernedAction', 'delivery_reporting_period'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryViewability', 'viewed_seconds_percentiles'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryViewability', 'viewed_seconds_histogram'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryOohMetrics', 'panels'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('DeliveryOohMetrics', 'postings'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('GetAdcpCapabilitiesResponse', 'oauth'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('GetAdcpCapabilitiesResponse', 'measurement_gateway'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('GetProductsRequest', 'fields'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('UpdateMediaBuyRequest', 'total_budget'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('UpdateMediaBuyRequest', 'frequency_cap'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('UpdateMediaBuyRequest', 'bidding'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('GetMediaBuyDeliveryResponse', 'reporting_revision_binding'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('GetMediaBuyDeliveryResponse', 'reporting_rows'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('ProvidePerformanceFeedbackRequest', 'evidence'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('SyncCreativesRequest', 'assignment_operations'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CheckGovernanceRequest', 'proposed_commitment'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CheckGovernanceRequest', 'execution_commitment'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
+    ('CheckGovernanceResponse', 'delivery_statement'): '3.2.0-rc.3 addition; typing deferred to a follow-up task',
 }
 
 # Enum schemas
@@ -1980,10 +2314,12 @@ def load_schema_spec(spec):
 
 def resolve_ref_schema(ref):
     """Load a schema referenced by $ref. Supports bundled refs of the form
-    /schemas/{version}/{path}.json and optional JSON Pointer fragments."""
+    /schemas/{version}/{path}.json (and, as of the 3.2.0-rc.3 bundle, the
+    absolute https://<host>/schemas/{version}/{path}.json form) plus optional
+    JSON Pointer fragments."""
     if not isinstance(ref, str):
         return None
-    m = re.match(r'^/schemas/[^/]+/(.+\.json)(#.*)?$', ref)
+    m = re.match(r'^(?:https?://[^/]+)?/schemas/[^/]+/(.+\.json)(#.*)?$', ref)
     if not m:
         return None
     spec = m.group(1) + (m.group(2) or '')
@@ -2001,10 +2337,12 @@ def resolve_ref_schema(ref):
         return None
 
 def ref_to_schema_path(ref):
-    """Return the repo-relative schema path for a bundled local $ref."""
+    """Return the repo-relative schema path for a bundled local $ref. Accepts
+    both the relative /schemas/... form and the absolute https://<host>/schemas/...
+    form used starting with the 3.2.0-rc.3 bundle."""
     if not isinstance(ref, str):
         return None
-    m = re.match(r'^/schemas/[^/]+/(.+\.json)(#.*)?$', ref)
+    m = re.match(r'^(?:https?://[^/]+)?/schemas/[^/]+/(.+\.json)(#.*)?$', ref)
     if not m:
         return None
     rel = m.group(1)
@@ -2651,13 +2989,26 @@ def validate_top_level_tool_union(name, schema, schema_path):
         )
     return top_level_union_variants(name, schema, schema_path)
 
+def variant_go_name(title):
+    """Sanitize a oneOf branch title into a Go type name.
+
+    Titles are normally already Go-identifier-safe (e.g.
+    "CreateMediaBuySuccess"). 3.2.0-rc.3 introduced Title Case titles with
+    spaces (e.g. "Control Applied"); strip whitespace so those still produce
+    a valid, if slightly denser, Go type name. Every call site that turns a
+    oneOf branch into a struct/marker name must go through this helper so a
+    schema's variant names are consistent across the file.
+    """
+    return re.sub(r'\s+', '', title or '')
+
+
 def top_level_union_variants(name, schema, schema_path=None):
     """Return generated variant names for a top-level oneOf schema."""
     variants = []
     seen = set()
     location = f' in {schema_path}' if schema_path else ''
     for idx, variant in enumerate(schema.get('oneOf', [])):
-        vname = variant.get('title', '')
+        vname = variant_go_name(variant.get('title', ''))
         if not vname:
             raise ValueError(
                 f'{name}{location} oneOf branch {idx} must have a title '
@@ -3004,7 +3355,7 @@ def generated_schema_entries():
                     'kind': 'union_interface',
                 }
                 for idx, variant in enumerate(schema['oneOf']):
-                    vname = variant.get('title', '')
+                    vname = variant_go_name(variant.get('title', ''))
                     if vname and vname not in generated and has_struct_fields(variant):
                         generated.add(vname)
                         yield {
@@ -3033,6 +3384,8 @@ def any_allowance(type_name, json_name, go_type, reason):
         return f'intentional {json_name} escape hatch'
     if (type_name, json_name) in INTENTIONAL_ANY_FIELDS:
         return INTENTIONAL_ANY_FIELDS[(type_name, json_name)]
+    if type_name in INTENTIONAL_ANY_TYPES:
+        return INTENTIONAL_ANY_TYPES[type_name]
     if 'AdcpError' in go_type:
         return 'AdCP error payload is intentionally open'
     return None
@@ -3258,7 +3611,7 @@ def generate():
             print(union_interface_to_type(name, schema, path))
             # Generate each variant
             for variant in schema['oneOf']:
-                vname = variant.get('title', '')
+                vname = variant_go_name(variant.get('title', ''))
                 if vname and vname not in generated:
                     generated.add(vname)
                     if has_struct_fields(variant):

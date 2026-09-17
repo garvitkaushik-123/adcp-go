@@ -249,13 +249,14 @@ def load_schema_spec(spec):
 
 
 def _resolve_ref(ref):
-    """Load a schema referenced by $ref. Only supports local refs of the form
-    /schemas/{version}/{path}.json — the only form actually used in-bundle.
+    """Load a schema referenced by $ref. Supports local refs of the form
+    /schemas/{version}/{path}.json and, as of the 3.2.0-rc.3 bundle, the
+    absolute https://<host>/schemas/{version}/{path}.json form.
     Contained entirely within SCRIPT_DIR to defeat any `../` escape a crafted
     ref could attempt."""
     if not isinstance(ref, str):
         return None
-    m = re.match(r'^/schemas/[^/]+/(.+\.json)(#.*)?$', ref)
+    m = re.match(r'^(?:https?://[^/]+)?/schemas/[^/]+/(.+\.json)(#.*)?$', ref)
     if not m:
         return None
     rel = m.group(1)

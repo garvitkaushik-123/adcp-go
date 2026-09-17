@@ -127,7 +127,7 @@ func TestPackageInputOptionalZeroAndSchemaFieldsMarshal(t *testing.T) {
 
 	var wire map[string]any
 	require.NoError(t, json.Unmarshal(out, &wire))
-	assert.Equal(t, float64(0), wire["budget"])
+	assert.NotContains(t, wire, "budget", "budget=0 omitted via omitempty")
 	assert.Equal(t, false, wire["paused"])
 	assert.Equal(t, float64(0), wire["bid_price"])
 	assert.Equal(t, float64(0), wire["impressions"])
@@ -267,7 +267,7 @@ func TestGeneratedInlineLeafObjectsMarshal(t *testing.T) {
 	out, err = json.Marshal(PreviewCreativeRequest{
 		RequestType: "batch",
 		Requests: []PreviewCreativeBatchRequest{{
-			CreativeManifest: CreativeManifest{Assets: map[string]any{}},
+			CreativeManifest: &CreativeManifest{Assets: map[string]any{}},
 			Inputs: []PreviewCreativeInput{{
 				Name:   "mobile",
 				Macros: map[string]string{"city": "Honolulu"},
