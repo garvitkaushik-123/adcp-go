@@ -10,6 +10,8 @@ const (
 	ADCPProtocolVersion30 = "3.0"
 	// ADCPProtocolVersion31 is the 3.1 release-precision wire version.
 	ADCPProtocolVersion31 = "3.1"
+	// ADCPProtocolVersion32 is the 3.2 release-precision wire version.
+	ADCPProtocolVersion32 = "3.2"
 	// ADCPMajorVersion3 is the legacy major-version value for all AdCP 3.x releases.
 	ADCPMajorVersion3 = 3
 )
@@ -17,13 +19,13 @@ const (
 // SupportedADCPVersions returns the 3.x release-precision versions this SDK
 // supports on the wire. Callers receive a fresh slice.
 func SupportedADCPVersions() []string {
-	return []string{ADCPProtocolVersion30, ADCPProtocolVersion31}
+	return []string{ADCPProtocolVersion30, ADCPProtocolVersion31, ADCPProtocolVersion32}
 }
 
 // DefaultADCPVersion returns the highest 3.x release-precision version this
 // SDK emits when a request does not pin adcp_version.
 func DefaultADCPVersion() string {
-	return ADCPProtocolVersion31
+	return ADCPProtocolVersion32
 }
 
 // VersionEnvelopeFor returns a request/response version envelope for a
@@ -91,21 +93,23 @@ func negotiateADCPVersion(request adcpVersionRequest, supported []string) (strin
 			return "", false
 		}
 		if requested.prerelease != "" {
-			if stable, ok := findSupportedADCPRelease(supportedReleases, requested.major, requested.minor, ""); ok {
-				return stable.version, true
+			// Prerelease pin: exact match only.
+			if match, ok := findSupportedADCPRelease(supportedReleases, requested.major, requested.minor, requested.prerelease); ok {
+				return match.version, true
 			}
+			return "", false
 		}
-		return highestSupportedADCPRelease(supportedReleases, requested.major, &requested)
+		return highestSupportedADCPRelease(supportedReleases, requested.major, &requested, true)
 	}
 
 	if request.majorProvided {
 		if request.major < 1 {
 			return "", false
 		}
-		return highestSupportedADCPRelease(supportedReleases, request.major, nil)
+		return highestSupportedADCPRelease(supportedReleases, request.major, nil, true)
 	}
 
-	return highestSupportedADCPRelease(supportedReleases, 0, nil)
+	return highestSupportedADCPRelease(supportedReleases, 0, nil, true)
 }
 
 type adcpRelease struct {
@@ -129,11 +133,14 @@ func parseSupportedADCPReleases(versions []string) []adcpRelease {
 	return releases
 }
 
-func highestSupportedADCPRelease(supported []adcpRelease, major int, max *adcpRelease) (string, bool) {
+func highestSupportedADCPRelease(supported []adcpRelease, major int, max *adcpRelease, stableOnly bool) (string, bool) {
 	var best adcpRelease
 	found := false
 	for _, release := range supported {
 		if major != 0 && release.major != major {
+			continue
+		}
+		if stableOnly && release.prerelease != "" {
 			continue
 		}
 		if max != nil && compareADCPRelease(release, *max) > 0 {
